@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Maquininha" />
+<title>Maquininha · Calculadora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --surface2: #1e2433;
+    --border: #2a3044;
+    --text: #e8eaf2;
+    --muted: #6b7591;
+    --accent: #00e5a0;
+    --accent2: #3d8bff;
+    --warn: #ff9f40;
+    --danger: #ff5c7a;
+    --radius: 14px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Sora', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* Header */
+  .header {
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .header-text h1 { font-size: 17px; font-weight: 600; }
+  .header-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* Main */
+  .main { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* Form fields */
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+  select, input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 11px 13px;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color .15s;
+  }
+  select:focus, input:focus { border-color: var(--accent2); }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7591' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 36px; }
+  input::placeholder { color: var(--muted); }
+
+  /* Input with prefix */
+  .input-wrap { position: relative; }
+  .input-prefix {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; color: var(--muted); pointer-events: none;
+  }
+  .input-wrap input { padding-left: 36px; }
+
+  /* Button */
+  .btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--accent), #00c987);
+    color: #0a1a12;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity .15s, transform .1s;
+    -webkit-appearance: none;
+  }
+  .btn:active { opacity: .85; transform: scale(.98); }
+
+  /* Results */
+  .results { display: none; }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric-full { grid-column: 1 / -1; }
+  .metric {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; font-weight: 500; }
+  .metric-value { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+  .metric-value.green { color: var(--accent); }
+  .metric-value.blue  { color: var(--accent2); }
+  .metric-value.orange{ color: var(--warn); }
+  .metric-value.white { color: var(--text); }
+
+  /* Flow */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .flow::-webkit-scrollbar { display: none; }
+  .flow-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    text-align: center;
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+  .flow-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .flow-val { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+  .flow-arrow { color: var(--muted); font-size: 14px; flex-shrink: 0; }
+
+  /* Detail rows */
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    gap: 12px;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row.highlight {
+    background: linear-gradient(90deg, rgba(0,229,160,.06), transparent);
+    margin: 0 -16px;
+    padding: 10px 16px;
+    border-radius: 0;
+  }
+  .dr-label { color: var(--muted); flex: 1; }
+  .dr-value { font-family: var(--mono); font-weight: 500; text-align: right; }
+
+  /* History */
+  .hist-item {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .hist-info { font-size: 12px; }
+  .hist-title { color: var(--text); font-weight: 500; margin-bottom: 2px; }
+  .hist-sub { color: var(--muted); }
+  .hist-lucro { font-family: var(--mono); font-size: 14px; color: var(--accent); font-weight: 500; white-space: nowrap; }
+
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .totals-row:last-child { border-bottom: none; }
+  .totals-row span:last-child { font-family: var(--mono); font-weight: 500; }
+
+  .clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .clear-btn:active { opacity: .7; }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 10px 20px 28px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .tag {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">💳</div>
+  <div class="header-text">
+    <h1>Maquininha</h1>
+    <p>Calculadora de lucro · Stone abr/2026</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Inputs -->
+  <div class="card">
+    <div class="card-title">Nova transação</div>
+
+    <div class="row2" style="margin-bottom:10px;">
+      <div class="field">
+        <label>Bandeira</label>
+        <select id="bandeira" onchange="atualizarParcelas()">
+          <option value="vm">Visa / Master</option>
+          <option value="elo">Elo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Modalidade</label>
+        <select id="modalidade" onchange="atualizarParcelas()">
+          <option value="credito">Crédito</option>
+          <option value="debito">Débito</option>
+          <option value="pix">PIX</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row2" style="margin-bottom:14px;">
+      <div class="field">
+        <label>Valor do cliente</label>
+        <div class="input-wrap">
+          <span class="input-prefix">R$</span>
+          <input type="number" id="valor" placeholder="0,00" inputmode="decimal" step="0.01" min="0" />
+        </div>
+      </div>
+      <div class="field">
+        <label id="lbl-parcelas">Parcelas</label>
+        <select id="parcelas"></select>
+      </div>
+    </div>
+
+    <button class="btn" onclick="calcular()">Calcular lucro →</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+
+    <div class="card">
+      <div class="card-title">Resultado</div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Cliente paga</div>
+          <div class="metric-value white" id="r-cliente">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Repasse ao lojista</div>
+          <div class="metric-value orange" id="r-repasse">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Você recebe da Stone</div>
+          <div class="metric-value blue" id="r-stone">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Seu lucro</div>
+          <div class="metric-value green" id="r-lucro">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Fluxo do dinheiro</div>
+      <div class="flow" id="flow"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Detalhamento</div>
+      <div class="detail-row"><span class="dr-label">Modalidade</span><span class="dr-value" id="d-mod">—</span></div>
+      <div class="detail-row"><span class="dr-label">Valor cobrado do cliente</span><span class="dr-value" id="d-cliente">—</span></div>
+      <div class="detail-row"><span class="dr-label">Sua taxa ao lojista</span><span class="dr-value" id="d-taxa-l">—</span></div>
+      <div class="detail-row highlight"><span class="dr-label" style="color:var(--warn);font-weight:500;">Repasse ao lojista</span><span class="dr-value orange" id="d-repasse">—</span></div>
+      <div class="detail-row"><span class="dr-label">Taxa Stone (sobre valor cliente)</span><span class="dr-value" id="d-taxa-s">—</span></div>
+      <div class="detail-row"><span class="dr-label">Desconto da Stone</span><span class="dr-value" style="color:var(--danger);" id="d-desc">—</span></div>
+      <div class="detail-row"><span class="dr-label">Você recebe da Stone</span><span class="dr-value" style="color:var(--accent2);" id="d-stone">—</span></div>
+      <div class="detail-row highlight"><span class="dr-label" style="color:var(--accent);font-weight:500;">Seu lucro líquido</span><span class="dr-value green" id="d-lucro">—</span></div>
+      <div class="detail-row"><span class="dr-label">Margem sobre o valor</span><span class="dr-value green" id="d-margem">—</span></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div id="hist-wrap" style="display:none;">
+    <div class="card">
+      <div class="section-header">
+        <div class="card-title" style="margin:0;">Histórico do dia</div>
+        <button class="clear-btn" onclick="limpar()">Limpar</button>
+      </div>
+      <div id="hist-list"></div>
+      <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        <div class="totals-row"><span style="color:var(--muted);">Total clientes</span><span style="color:var(--text);" id="ht-c">—</span></div>
+        <div class="totals-row"><span style="color:var(--muted);">Total repassado</span><span style="color:var(--warn);" id="ht-r">—</span></div>
+        <div class="totals-row"><span style="color:var(--muted);">Recebido da Stone</span><span style="color:var(--accent2);" id="ht-s">—</span></div>
+        <div class="totals-row"><span style="color:var(--muted);font-weight:600;">Lucro total</span><span style="color:var(--accent);" id="ht-l">—</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="tag">Stone · abr/2026</div><br/>
+  Atualize as taxas quando a Stone mudar sua tabela.
+</div>
+
+<script>
+const dados = {
+  vm: {
+    pix:    { tl: 0.0050, cl: 0.9950, ts: 0.0000 },
+    debito: { tl: 0.0240, cl: 0.9760, ts: 0.0139 },
+    credito: [null,
+      {tl:0.0450,cl:0.9550,ts:0.0359},{tl:0.0560,cl:0.9440,ts:0.0473},
+      {tl:0.0650,cl:0.9350,ts:0.0541},{tl:0.0710,cl:0.9290,ts:0.0610},
+      {tl:0.0770,cl:0.9230,ts:0.0678},{tl:0.0830,cl:0.9170,ts:0.0746},
+      {tl:0.0950,cl:0.9050,ts:0.0756},{tl:0.0999,cl:0.9010,ts:0.0825},
+      {tl:0.1050,cl:0.8950,ts:0.0894},{tl:0.1150,cl:0.8850,ts:0.0962},
+      {tl:0.1250,cl:0.8750,ts:0.1031},{tl:0.1350,cl:0.8650,ts:0.1100},
+      {tl:0.1490,cl:0.8510,ts:0.1169},{tl:0.1590,cl:0.8410,ts:0.1238},
+      {tl:0.1690,cl:0.8310,ts:0.1306},{tl:0.1790,cl:0.8210,ts:0.1375},
+      {tl:0.1890,cl:0.8110,ts:0.1444},{tl:0.2090,cl:0.7910,ts:0.1513},
+    ]
+  },
+  elo: {
+    pix:    { tl: 0.0050, cl: 0.9950, ts: 0.0000 },
+    debito: { tl: 0.0290, cl: 0.9910, ts: 0.0207 },
+    credito: [null,
+      {tl:0.0550,cl:0.9450,ts:0.0460},{tl:0.0660,cl:0.9340,ts:0.0557},
+      {tl:0.0750,cl:0.9250,ts:0.0625},{tl:0.0810,cl:0.9190,ts:0.0693},
+      {tl:0.0870,cl:0.9130,ts:0.0760},{tl:0.0930,cl:0.9070,ts:0.0828},
+      {tl:0.1050,cl:0.8950,ts:0.0940},{tl:0.1099,cl:0.8910,ts:0.1008},
+      {tl:0.1150,cl:0.8850,ts:0.1075},{tl:0.1250,cl:0.8750,ts:0.1142},
+      {tl:0.1350,cl:0.8650,ts:0.1210},{tl:0.1450,cl:0.8550,ts:0.1277},
+      {tl:0.1590,cl:0.8410,ts:0.1345},{tl:0.1690,cl:0.8310,ts:0.1412},
+      {tl:0.1790,cl:0.8210,ts:0.1479},{tl:0.1890,cl:0.8110,ts:0.1547},
+      {tl:0.1990,cl:0.8010,ts:0.1614},{tl:0.2190,cl:0.7810,ts:0.1682},
+    ]
+  }
+};
+
+let hist = [];
+
+const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+const pct = v => (v * 100).toFixed(2).replace('.', ',') + '%';
+
+function atualizarParcelas() {
+  const mod = document.getElementById('modalidade').value;
+  const sel = document.getElementById('parcelas');
+  sel.innerHTML = '';
+  if (mod !== 'credito') {
+    sel.disabled = true;
+    const o = document.createElement('option');
+    o.textContent = '—'; sel.appendChild(o);
+  } else {
+    sel.disabled = false;
+    for (let i = 1; i <= 18; i++) {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = i === 1 ? '1x à vista' : i + 'x';
+      sel.appendChild(o);
+    }
+  }
+}
+
+function calcular() {
+  const vc = parseFloat(document.getElementById('valor').value);
+  if (!vc || vc <= 0) { alert('Informe o valor da venda.'); return; }
+
+  const bandeira = document.getElementById('bandeira').value;
+  const mod = document.getElementById('modalidade').value;
+  const parcelas = parseInt(document.getElementById('parcelas').value) || 1;
+  const b = dados[bandeira];
+  let d, label;
+
+  if (mod === 'pix')    { d = b.pix;             label = 'PIX'; }
+  else if (mod === 'debito') { d = b.debito;     label = 'Débito'; }
+  else                  { d = b.credito[parcelas]; label = `Crédito ${parcelas}x`; }
+
+  if (!d) { alert('Combinação inválida.'); return; }
+
+  const repasse     = vc * d.cl;
+  const descStone   = vc * d.ts;
+  const recebeStone = vc - descStone;
+  const lucro       = recebeStone - repasse;
+  const margem      = lucro / vc;
+
+  // Metrics
+  document.getElementById('r-cliente').textContent  = fmt(vc);
+  document.getElementById('r-repasse').textContent  = fmt(repasse);
+  document.getElementById('r-stone').textContent    = fmt(recebeStone);
+  document.getElementById('r-lucro').textContent    = fmt(lucro);
+
+  // Detail
+  document.getElementById('d-mod').textContent      = label + ' · ' + document.getElementById('bandeira').options[document.getElementById('bandeira').selectedIndex].text;
+  document.getElementById('d-cliente').textContent  = fmt(vc);
+  document.getElementById('d-taxa-l').textContent   = pct(d.tl);
+  document.getElementById('d-repasse').textContent  = fmt(repasse);
+  document.getElementById('d-taxa-s').textContent   = pct(d.ts);
+  document.getElementById('d-desc').textContent     = '- ' + fmt(descStone);
+  document.getElementById('d-stone').textContent    = fmt(recebeStone);
+  document.getElementById('d-lucro').textContent    = fmt(lucro);
+  document.getElementById('d-margem').textContent   = pct(margem);
+
+  // Flow
+  document.getElementById('flow').innerHTML = `
+    <div class="flow-box"><div class="flow-label">Cliente paga</div><div class="flow-val" style="color:var(--text)">${fmt(vc)}</div></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-box"><div class="flow-label">Stone desconta</div><div class="flow-val" style="color:var(--danger)">-${fmt(descStone)}</div></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-box"><div class="flow-label">Você recebe</div><div class="flow-val" style="color:var(--accent2)">${fmt(recebeStone)}</div></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-box"><div class="flow-label">Repassa lojista</div><div class="flow-val" style="color:var(--warn)">-${fmt(repasse)}</div></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-box"><div class="flow-label">Seu lucro</div><div class="flow-val" style="color:var(--accent)">${fmt(lucro)}</div></div>
+  `;
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  hist.push({ label, vc, repasse, recebeStone, lucro });
+  renderHist();
+}
+
+function renderHist() {
+  if (!hist.length) { document.getElementById('hist-wrap').style.display = 'none'; return; }
+  document.getElementById('hist-wrap').style.display = 'block';
+
+  document.getElementById('hist-list').innerHTML = hist.map((h, i) => `
+    <div class="hist-item">
+      <div class="hist-info">
+        <div class="hist-title">#${i+1} · ${h.label}</div>
+        <div class="hist-sub">Cliente ${fmt(h.vc)} · Lojista ${fmt(h.repasse)}</div>
+      </div>
+      <div class="hist-lucro">+${fmt(h.lucro)}</div>
+    </div>
+  `).join('');
+
+  const tc = hist.reduce((a,h)=>a+h.vc,0);
+  const tr = hist.reduce((a,h)=>a+h.repasse,0);
+  const ts = hist.reduce((a,h)=>a+h.recebeStone,0);
+  const tl = hist.reduce((a,h)=>a+h.lucro,0);
+  document.getElementById('ht-c').textContent = fmt(tc);
+  document.getElementById('ht-r').textContent = fmt(tr);
+  document.getElementById('ht-s').textContent = fmt(ts);
+  document.getElementById('ht-l').textContent = fmt(tl);
+}
+
+function limpar() { hist = []; renderHist(); }
+
+atualizarParcelas();
+</script>
+</body>
+</html>
