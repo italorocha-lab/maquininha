@@ -260,16 +260,21 @@ input::placeholder{color:var(--muted);}
     <div id="results" style="display:none;display:flex;flex-direction:column;gap:14px;">
 
       <div class="card">
-        <div class="card-title">Resultado</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div class="card-title" style="margin:0;">Resultado</div>
+          <button id="btn-ocultar" onclick="toggleLucro()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:5px;">
+            <span id="olho-icon">👁</span> <span id="olho-label">Modo lojista</span>
+          </button>
+        </div>
         <div class="metrics">
           <div class="metric"><div class="metric-label">Cliente paga</div><div class="metric-value white" id="r-cliente">—</div></div>
           <div class="metric"><div class="metric-label">Repasse ao lojista</div><div class="metric-value orange" id="r-repasse">—</div></div>
-          <div class="metric"><div class="metric-label">Você recebe da Stone</div><div class="metric-value blue" id="r-stone">—</div></div>
-          <div class="metric"><div class="metric-label">Seu lucro</div><div class="metric-value green" id="r-lucro">—</div></div>
+          <div class="metric lucro-campo"><div class="metric-label">Você recebe da Stone</div><div class="metric-value blue" id="r-stone">—</div></div>
+          <div class="metric lucro-campo"><div class="metric-label">Seu lucro</div><div class="metric-value green" id="r-lucro">—</div></div>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card lucro-campo">
         <div class="card-title">Fluxo do dinheiro</div>
         <div class="flow" id="flow"></div>
       </div>
@@ -280,11 +285,11 @@ input::placeholder{color:var(--muted);}
         <div class="dr"><span class="dr-label">Valor cobrado do cliente</span><span class="dr-value" id="d-cliente">—</span></div>
         <div class="dr"><span class="dr-label">Sua taxa ao lojista</span><span class="dr-value" id="d-taxa-l">—</span></div>
         <div class="dr hl"><span class="dr-label" style="color:var(--warn);font-weight:600;">Repasse ao lojista</span><span class="dr-value orange" id="d-repasse">—</span></div>
-        <div class="dr"><span class="dr-label">Taxa Stone (sobre valor cliente)</span><span class="dr-value" id="d-taxa-s">—</span></div>
-        <div class="dr"><span class="dr-label">Desconto da Stone</span><span class="dr-value red" id="d-desc">—</span></div>
-        <div class="dr"><span class="dr-label">Você recebe da Stone</span><span class="dr-value blue" id="d-stone">—</span></div>
-        <div class="dr hl"><span class="dr-label" style="color:var(--accent);font-weight:600;">Seu lucro líquido</span><span class="dr-value green" id="d-lucro">—</span></div>
-        <div class="dr"><span class="dr-label">Margem sobre o valor</span><span class="dr-value green" id="d-margem">—</span></div>
+        <div class="dr lucro-campo"><span class="dr-label">Taxa Stone (sobre valor cliente)</span><span class="dr-value" id="d-taxa-s">—</span></div>
+        <div class="dr lucro-campo"><span class="dr-label">Desconto da Stone</span><span class="dr-value red" id="d-desc">—</span></div>
+        <div class="dr lucro-campo"><span class="dr-label">Você recebe da Stone</span><span class="dr-value blue" id="d-stone">—</span></div>
+        <div class="dr hl lucro-campo"><span class="dr-label" style="color:var(--accent);font-weight:600;">Seu lucro líquido</span><span class="dr-value green" id="d-lucro">—</span></div>
+        <div class="dr lucro-campo"><span class="dr-label">Margem sobre o valor</span><span class="dr-value green" id="d-margem">—</span></div>
       </div>
 
       <button class="btn-secondary" onclick="salvarRegistro()">＋ Salvar no histórico</button>
@@ -436,6 +441,19 @@ function atualizarParcelas(){
   }
 }
 
+// ═══════════════ OCULTAR LUCRO ═══════════════
+let lucroOculto = false;
+function toggleLucro(){
+  lucroOculto = !lucroOculto;
+  document.querySelectorAll('.lucro-campo').forEach(el=>{
+    el.style.filter = lucroOculto ? 'blur(6px)' : 'none';
+    el.style.userSelect = lucroOculto ? 'none' : '';
+    el.style.pointerEvents = lucroOculto ? 'none' : '';
+  });
+  document.getElementById('olho-icon').textContent = lucroOculto ? '🙈' : '👁';
+  document.getElementById('olho-label').textContent = lucroOculto ? 'Modo normal' : 'Modo lojista';
+}
+
 // ═══════════════ CALCULAR ═══════════════
 let ultimoCalc=null;
 
@@ -481,12 +499,21 @@ function calcular(){
     <span class="flow-arrow">›</span>
     <div class="flow-box"><div class="flow-label">Stone desconta</div><div class="flow-val" style="color:var(--danger)">-${fmt(descStone)}</div></div>
     <span class="flow-arrow">›</span>
-    <div class="flow-box"><div class="flow-label">Você recebe</div><div class="flow-val" style="color:var(--accent2)">${fmt(recebeStone)}</div></div>
+    <div class="flow-box lucro-campo"><div class="flow-label">Você recebe</div><div class="flow-val" style="color:var(--accent2)">${fmt(recebeStone)}</div></div>
     <span class="flow-arrow">›</span>
     <div class="flow-box"><div class="flow-label">Repassa lojista</div><div class="flow-val" style="color:var(--warn)">-${fmt(repasse)}</div></div>
     <span class="flow-arrow">›</span>
-    <div class="flow-box"><div class="flow-label">Seu lucro</div><div class="flow-val" style="color:var(--accent)">${fmt(lucro)}</div></div>
+    <div class="flow-box lucro-campo"><div class="flow-label">Seu lucro</div><div class="flow-val" style="color:var(--accent)">${fmt(lucro)}</div></div>
   `;
+
+  // reaplicar estado de ocultação se já estava ativo
+  if(lucroOculto){
+    document.querySelectorAll('.lucro-campo').forEach(el=>{
+      el.style.filter='blur(6px)';
+      el.style.userSelect='none';
+      el.style.pointerEvents='none';
+    });
+  }
 
   const res=document.getElementById('results');
   res.style.display='flex';
